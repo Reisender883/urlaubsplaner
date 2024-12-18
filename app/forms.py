@@ -1,8 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, TextAreaField, DateField, SelectField, SubmitField, IntegerField, SelectMultipleField, FloatField, TimeField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Optional, URL, NumberRange
-from app.models import Employee, User
-from datetime import datetime
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, SelectMultipleField, IntegerField, TimeField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange
+from app.models import User
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -14,7 +13,8 @@ class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
-    password2 = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
 
     def validate_username(self, username):
@@ -41,15 +41,11 @@ class EmployeeForm(FlaskForm):
     ], validators=[DataRequired()])
     work_start = TimeField('Work Start Time', validators=[DataRequired()])
     work_end = TimeField('Work End Time', validators=[DataRequired()])
-    break_duration = IntegerField('Break Duration (minutes)', validators=[DataRequired(), NumberRange(min=0)])
+    break_duration = IntegerField('Break Duration (minutes)', validators=[DataRequired(), NumberRange(min=0, max=240)])
     submit = SubmitField('Add Employee')
 
 class ResourceAssignmentForm(FlaskForm):
     employee = SelectField('Employee', coerce=int, validators=[DataRequired()])
     capacity_percentage = IntegerField('Capacity Percentage', validators=[DataRequired(), NumberRange(min=1, max=100)])
-    hours_per_week = IntegerField('Hours per Week', validators=[NumberRange(min=1)])
+    hours_per_week = IntegerField('Hours per Week', validators=[DataRequired(), NumberRange(min=1, max=168)])
     submit = SubmitField('Add Assignment')
-
-    def __init__(self, *args, **kwargs):
-        super(ResourceAssignmentForm, self).__init__(*args, **kwargs)
-        self.employee.choices = [(e.id, e.name) for e in Employee.query.all()]

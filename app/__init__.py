@@ -11,6 +11,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
 login.login_view = 'main.login'
+login.login_message = 'Please log in to access this page.'
 bootstrap = Bootstrap()
 mail = Mail()
 cors = CORS()
@@ -18,6 +19,10 @@ cors = CORS()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    
+    # Ensure secret key is set
+    if not app.config['SECRET_KEY']:
+        app.config['SECRET_KEY'] = 'dev-key-please-change-in-production'
 
     db.init_app(app)
     migrate.init_app(app, db)

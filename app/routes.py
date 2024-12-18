@@ -8,25 +8,43 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 @bp.route('/index')
-@login_required
 def index():
+    if not current_user.is_authenticated:
+        return redirect(url_for('main.login'))
     return render_template('index.html', title='Home')
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    print("Login route accessed")  # Debug print
     if current_user.is_authenticated:
+        print("User already authenticated, redirecting to index")  # Debug print
         return redirect(url_for('main.index'))
+    
     form = LoginForm()
     if form.validate_on_submit():
+        print(f"Form validated, username: {form.username.data}")  # Debug print
         user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
+        
+        if user is None:
+            print("User not found")  # Debug print
             flash('Invalid username or password')
             return redirect(url_for('main.login'))
+            
+        if not user.check_password(form.password.data):
+            print("Invalid password")  # Debug print
+            flash('Invalid username or password')
+            return redirect(url_for('main.login'))
+            
+        print(f"Login successful for user: {user.username}")  # Debug print
         login_user(user, remember=form.remember_me.data)
+        
         next_page = request.args.get('next')
         if not next_page or not next_page.startswith('/'):
             next_page = url_for('main.index')
+            
+        print(f"Redirecting to: {next_page}")  # Debug print
         return redirect(next_page)
+        
     return render_template('auth/login.html', title='Sign In', form=form)
 
 @bp.route('/logout')

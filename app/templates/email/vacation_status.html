@@ -2,12 +2,29 @@
 <html>
 <head>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: {% if request.status == 'approved' %}#28a745{% else %}#dc3545{% endif %}; 
-                 color: white; padding: 10px; text-align: center; }
-        .content { padding: 20px; }
-        .footer { text-align: center; padding: 20px; color: #666; }
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .header { 
+            background-color: {% if request.status == 'approved' %}#28a745{% else %}#dc3545{% endif %}; 
+            color: white; 
+            padding: 10px; 
+            text-align: center; 
+        }
+        .content { 
+            padding: 20px; 
+        }
+        .footer { 
+            text-align: center; 
+            padding: 20px; 
+            color: #666; 
+        }
     </style>
 </head>
 <body>
