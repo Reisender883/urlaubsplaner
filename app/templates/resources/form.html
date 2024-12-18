@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if resource %}
+Ressource bearbeiten
+{% else %}
+Neue Ressource
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        {% if resource %}
+                        Ressource bearbeiten
+                        {% else %}
+                        Neue Ressource
+                        {% endif %}
+                    </h4>
+                    <a href="{{ url_for('main.resources') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Zurück
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="form-group">
+                            {{ form.name.label }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.description.label }}
+                            {{ form.description(class="form-control", rows=4) }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.department.label }}
+                            {{ form.department(class="form-control") }}
+                            {% if form.department.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.department.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.priority.label }}
+                            {{ form.priority(class="form-control") }}
+                            {% if form.priority.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.priority.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.min_staff_required.label }}
+                            {{ form.min_staff_required(class="form-control") }}
+                            {% if form.min_staff_required.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.min_staff_required.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {{ form.submit(class="btn btn-primary") }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

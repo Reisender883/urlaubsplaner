@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Jahresanalyse {{ year }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Urlaubsanalyse {{ year }}</h4>
+                    <div>
+                        <a href="{{ url_for('main.reports') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Zurück
+                        </a>
+                        <a href="{{ url_for('main.export_pdf_report', report_type='yearly', year=year) }}" 
+                           class="btn btn-danger ml-2">
+                            <i class="fas fa-file-pdf mr-2"></i>PDF Export
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Monatliche Verteilung -->
+                    <div class="mb-5">
+                        <h5>Monatliche Verteilung</h5>
+                        {{ analyses.monthly_distribution | safe if analyses.monthly_distribution }}
+                    </div>
+
+                    <!-- Abteilungsverteilung -->
+                    <div class="mb-5">
+                        <h5>Verteilung nach Abteilungen</h5>
+                        {{ analyses.department_summary | safe if analyses.department_summary }}
+                    </div>
+
+                    <!-- Spitzenzeiten -->
+                    <div class="mb-5">
+                        <h5>Urlaubsspitzen im Jahresverlauf</h5>
+                        {{ analyses.peak_periods | safe if analyses.peak_periods }}
+                    </div>
+
+                    <!-- Mitarbeiterverteilung -->
+                    <div class="mb-5">
+                        <h5>Verteilung nach Mitarbeitern</h5>
+                        {{ analyses.employee_summary | safe if analyses.employee_summary }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

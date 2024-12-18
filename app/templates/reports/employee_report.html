@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Mitarbeiterbericht{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        Urlaubsübersicht {{ data.employee.first_name }} {{ data.employee.last_name }} ({{ year }})
+                    </h4>
+                    <div>
+                        <a href="{{ url_for('main.reports') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Zurück
+                        </a>
+                        <a href="{{ url_for('main.export_pdf_report', report_type='employee', employee_id=data.employee.id, year=year) }}" 
+                           class="btn btn-danger ml-2">
+                            <i class="fas fa-file-pdf mr-2"></i>PDF Export
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Übersicht -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Gesamte Urlaubstage</h6>
+                                    <h2 class="mb-0">{{ data.total_days }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Genommene Tage</h6>
+                                    <h2 class="mb-0">{{ data.used_days }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card {{ 'bg-success' if data.remaining_days >= 0 else 'bg-danger' }} text-white">
+                                <div class="card-body">
+                                    <h6 class="card-title">Verbleibende Tage</h6>
+                                    <h2 class="mb-0">{{ data.remaining_days }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monatliche Verteilung -->
+                    <div class="mb-4">
+                        <h5>Monatliche Verteilung</h5>
+                        <div class="chart-container" style="position: relative; height:300px;">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Urlaubsanträge -->
+                    <div class="mb-4">
+                        <h5>Urlaubsanträge</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Zeitraum</th>
+                                        <th>Tage</th>
+                                        <th>Status</th>
+                                        <th>Vertretung</th>
+                                        <th>Bemerkung</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in data.requests %}
+                                    <tr>
+                                        <td>
+                                            {{ request.start_date.strftime('%d.%m.%Y') }} - 
+                                            {{ request.end_date.strftime('%d.%m.%Y') }}
+                                        </td>
+                                        <td>{{ (request.end_date - request.start_date).days + 1 }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ {
+                                                'pending': 'warning',
+                                                'approved': 'success',
+                                                'rejected': 'danger'
+                                            }[request.status] }}">
+                                                {{ {
+                                                    'pending': 'Ausstehend',
+                                                    'approved': 'Genehmigt',
+                                                    'rejected': 'Abgelehnt'
+                                                }[request.status] }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if request.substitute %}
+                                                {{ request.substitute.first_name }} {{ request.substitute.last_name }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ request.comment or '-' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('monthlyChart').getContext('2d');
+    var monthlyData = {{ data.monthly_distribution | tojson }};
+    
+    var labels = [
+        'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+        'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+    ];
+    
+    var data = Object.values(monthlyData);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Urlaubstage',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

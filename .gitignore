@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -16,6 +15,7 @@ lib64/
 parts/
 sdist/
 var/
+wheels/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -23,20 +23,18 @@ var/
 # Virtual Environment
 venv/
 ENV/
-
-# Flask
-instance/
-.webassets-cache
-
-# Database
-*.db
-*.sqlite3
+env/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# Flask
+instance/
+.webassets-cache
+app.db
 
 # Environment variables
 .env

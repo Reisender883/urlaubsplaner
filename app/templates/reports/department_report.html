@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Abteilungsbericht {{ department }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Urlaubsübersicht {{ department }} ({{ year }})</h4>
+                    <div>
+                        <a href="{{ url_for('main.reports') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Zurück
+                        </a>
+                        <a href="{{ url_for('main.export_pdf_report', report_type='department', department=department, year=year) }}" 
+                           class="btn btn-danger ml-2">
+                            <i class="fas fa-file-pdf mr-2"></i>PDF Export
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mitarbeiter</th>
+                                    <th>Gesamte Urlaubstage</th>
+                                    <th>Genommene Tage</th>
+                                    <th>Verbleibende Tage</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in data %}
+                                <tr>
+                                    <td>{{ item.employee.first_name }} {{ item.employee.last_name }}</td>
+                                    <td>{{ item.total_days }}</td>
+                                    <td>{{ item.used_days }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ 'success' if item.remaining_days >= 0 else 'danger' }}">
+                                            {{ item.remaining_days }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info" type="button" 
+                                                data-toggle="collapse" 
+                                                data-target="#details-{{ item.employee.id }}">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5" class="p-0">
+                                        <div class="collapse" id="details-{{ item.employee.id }}">
+                                            <div class="card card-body">
+                                                <h6>Genehmigte Urlaubsanträge:</h6>
+                                                {% if item.requests %}
+                                                <ul class="list-unstyled">
+                                                    {% for request in item.requests %}
+                                                    <li>
+                                                        {{ request.start_date.strftime('%d.%m.%Y') }} - 
+                                                        {{ request.end_date.strftime('%d.%m.%Y') }}
+                                                        ({{ (request.end_date - request.start_date).days + 1 }} Tage)
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                                {% else %}
+                                                <p class="text-muted">Keine genehmigten Urlaubsanträge</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

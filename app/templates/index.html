@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Jahresurlaub</h5>
+                <p class="display-4">{{ current_user.annual_leave_days }}</p>
+                <p class="mb-0">Tage gesamt</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Resturlaub</h5>
+                <p class="display-4">{{ current_user.carried_over_days }}</p>
+                <p class="mb-0">Tage aus Vorjahr</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Verfügbar</h5>
+                <p class="display-4">{{ remaining_days }}</p>
+                <p class="mb-0">Tage verfügbar</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Aktuelle Urlaubsanträge</h5>
+                <a href="{{ url_for('main.request_vacation') }}" class="btn btn-primary btn-sm">Neuer Antrag</a>
+            </div>
+            <div class="card-body">
+                {% if pending_requests %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Zeitraum</th>
+                                <th>Tage</th>
+                                <th>Status</th>
+                                <th>Vertretung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in pending_requests %}
+                            <tr>
+                                <td>{{ request.start_date.strftime('%d.%m.%Y') }} - {{ request.end_date.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ (request.end_date - request.start_date).days + 1 }}</td>
+                                <td>
+                                    <span class="badge {% if request.status == 'approved' %}badge-success
+                                                   {% elif request.status == 'rejected' %}badge-danger
+                                                   {% else %}badge-warning{% endif %}">
+                                        {% if request.status == 'approved' %}Genehmigt
+                                        {% elif request.status == 'rejected' %}Abgelehnt
+                                        {% else %}Ausstehend{% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if request.substitute %}
+                                        {{ request.substitute.first_name }} {{ request.substitute.last_name }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0 text-center py-3">Keine aktuellen Urlaubsanträge vorhanden.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Aktuelle Vertretungen</h5>
+            </div>
+            <div class="card-body">
+                {% if substitute_requests %}
+                <div class="list-group list-group-flush">
+                    {% for req in substitute_requests %}
+                    <div class="list-group-item">
+                        <h6 class="mb-1">{{ req.employee.first_name }} {{ req.employee.last_name }}</h6>
+                        <p class="mb-1 text-muted">{{ req.start_date.strftime('%d.%m.%Y') }} - {{ req.end_date.strftime('%d.%m.%Y') }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0 text-center py-3">Keine aktuellen Vertretungen.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Schnellzugriff</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ url_for('main.calendar') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-calendar-alt mr-2"></i> Kalenderübersicht
+                    </a>
+                    <a href="{{ url_for('main.my_requests') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-list mr-2"></i> Meine Anträge
+                    </a>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('main.admin') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users-cog mr-2"></i> Administration
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if current_user.is_admin %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Teamübersicht</h5>
+            </div>
+            <div class="card-body">
+                <div id="team-calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.is_admin %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('team-calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridWeek',
+        locale: 'de',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridWeek,dayGridMonth'
+        },
+        height: 'auto',
+        events: {{ events|tojson|safe if events else '[]'|safe }}
+    });
+    calendar.render();
+});
+</script>
+{% endif %}
+{% endblock %}

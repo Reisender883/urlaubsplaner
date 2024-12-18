@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #007bff; color: white; padding: 10px; text-align: center; }
+        .content { padding: 20px; }
+        .footer { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Neuer Urlaubsantrag</h2>
+        </div>
+        <div class="content">
+            <p>Ein neuer Urlaubsantrag wurde eingereicht:</p>
+            <p><strong>Mitarbeiter:</strong> {{ request.employee.first_name }} {{ request.employee.last_name }}</p>
+            <p><strong>Abteilung:</strong> {{ request.employee.department }}</p>
+            <p><strong>Zeitraum:</strong> {{ request.start_date.strftime('%d.%m.%Y') }} - {{ request.end_date.strftime('%d.%m.%Y') }}</p>
+            <p><strong>Anzahl Tage:</strong> {{ (request.end_date - request.start_date).days + 1 }}</p>
+            {% if request.substitute %}
+            <p><strong>Vertretung:</strong> {{ request.substitute.first_name }} {{ request.substitute.last_name }}</p>
+            {% endif %}
+            {% if request.comment %}
+            <p><strong>Kommentar:</strong> {{ request.comment }}</p>
+            {% endif %}
+            <p>
+                <a href="{{ url_for('main.approve_request', request_id=request.id, action='approve', _external=True) }}" 
+                   style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; margin-right: 10px;">
+                    Genehmigen
+                </a>
+                <a href="{{ url_for('main.approve_request', request_id=request.id, action='reject', _external=True) }}"
+                   style="background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none;">
+                    Ablehnen
+                </a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>Dies ist eine automatisch generierte E-Mail. Bitte antworten Sie nicht darauf.</p>
+        </div>
+    </div>
+</body>
+</html>

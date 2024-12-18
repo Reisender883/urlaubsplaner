@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Kalender-Einstellungen{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Kalender-Einstellungen</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Kalender-Abonnements -->
+                    <h5 class="mb-4">Kalender-Abonnements</h5>
+                    
+                    <!-- Persönlicher Kalender -->
+                    <div class="mb-4">
+                        <h6>Persönlicher Urlaubskalender</h6>
+                        <p class="text-muted">Enthält alle Ihre Urlaubsanträge.</p>
+                        <div class="input-group">
+                            <input type="text" class="form-control" readonly
+                                   value="{{ url_for('main.calendar_feed', type='employee', id=current_user.id, _external=True) }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary copy-btn" type="button"
+                                        data-clipboard-text="{{ url_for('main.calendar_feed', type='employee', id=current_user.id, _external=True) }}">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">
+                            Diese URL können Sie in Ihrer Kalender-App als Abonnement hinzufügen.
+                        </small>
+                    </div>
+                    
+                    {% if current_user.is_admin %}
+                    <!-- Abteilungskalender -->
+                    <div class="mb-4">
+                        <h6>Abteilungskalender</h6>
+                        <p class="text-muted">Enthält alle genehmigten Urlaubsanträge der jeweiligen Abteilung.</p>
+                        {% for department in departments %}
+                        <div class="mb-3">
+                            <label>{{ department }}</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" readonly
+                                       value="{{ url_for('main.calendar_feed', type='department', id=department, _external=True) }}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary copy-btn" type="button"
+                                            data-clipboard-text="{{ url_for('main.calendar_feed', type='department', id=department, _external=True) }}">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- CalDAV Synchronisation -->
+                    <h5 class="mb-4">CalDAV Synchronisation</h5>
+                    <form method="POST" action="{{ url_for('main.calendar_settings') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="form-group">
+                            {{ form.caldav_url.label }}
+                            {{ form.caldav_url(class="form-control") }}
+                            {% if form.caldav_url.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.caldav_url.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form.caldav_username.label }}
+                            {{ form.caldav_username(class="form-control") }}
+                            {% if form.caldav_username.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.caldav_username.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form.caldav_password.label }}
+                            {{ form.caldav_password(class="form-control") }}
+                            {% if form.caldav_password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.caldav_password.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form.auto_sync.label }}
+                            {{ form.auto_sync(class="form-check-input ml-1") }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisiere Clipboard.js
+    var clipboard = new ClipboardJS('.copy-btn');
+    
+    clipboard.on('success', function(e) {
+        // Zeige Feedback
+        var button = e.trigger;
+        var originalHtml = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(function() {
+            button.innerHTML = originalHtml;
+        }, 2000);
+        
+        e.clearSelection();
+    });
+});
+</script>
+{% endblock %}

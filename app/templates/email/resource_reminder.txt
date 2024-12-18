@@ -1,0 +1,31 @@
+Hallo {{ assignment.employee.first_name }},
+
+dies ist eine Erinnerung an Ihre Verantwortlichkeit für die folgende wichtige Ressource:
+
+{{ assignment.resource.name }}
+{% if assignment.resource.description %}
+{{ assignment.resource.description }}
+{% endif %}
+
+Details:
+- Abteilung: {{ assignment.resource.department }}
+- Priorität: {{ {
+    1: 'Niedrig',
+    2: 'Mittel-Niedrig',
+    3: 'Mittel',
+    4: 'Mittel-Hoch',
+    5: 'Hoch'
+}[assignment.resource.priority] }}
+- Rolle: {% if assignment.is_primary %}Hauptverantwortlich{% else %}Mitarbeiter{% endif %}
+- Startdatum: {{ assignment.start_date.strftime('%d.%m.%Y') }}
+{% if assignment.end_date %}
+- Enddatum: {{ assignment.end_date.strftime('%d.%m.%Y') }}
+{% endif %}
+
+Bitte stellen Sie sicher, dass alle notwendigen Aufgaben und Verantwortlichkeiten wahrgenommen werden.
+
+Sie können die Details in der Ressourcenverwaltung einsehen:
+{{ url_for('main.view_resource', id=assignment.resource.id, _external=True) }}
+
+Mit freundlichen Grüßen
+Ihr Urlaubsplaner-Team

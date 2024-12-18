@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}{{ resource.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ resource.name }}</h4>
+                    <div>
+                        <a href="{{ url_for('main.resources') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Zurück
+                        </a>
+                        <a href="{{ url_for('main.edit_resource', id=resource.id) }}" class="btn btn-warning">
+                            <i class="fas fa-edit mr-2"></i>Bearbeiten
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <!-- Ressourcen-Details -->
+                        <div class="col-md-6">
+                            <h5>Details</h5>
+                            <table class="table">
+                                <tr>
+                                    <th>Abteilung:</th>
+                                    <td>{{ resource.department }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Priorität:</th>
+                                    <td>
+                                        <span class="badge badge-{{ {
+                                            1: 'secondary',
+                                            2: 'info',
+                                            3: 'primary',
+                                            4: 'warning',
+                                            5: 'danger'
+                                        }[resource.priority] }}">
+                                            {{ {
+                                                1: 'Niedrig',
+                                                2: 'Mittel-Niedrig',
+                                                3: 'Mittel',
+                                                4: 'Mittel-Hoch',
+                                                5: 'Hoch'
+                                            }[resource.priority] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Mindestbesetzung:</th>
+                                    <td>{{ resource.min_staff_required }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Beschreibung:</th>
+                                    <td>{{ resource.description or '-' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Aktuelle Besetzung -->
+                        <div class="col-md-6">
+                            <h5>Aktuelle Besetzung</h5>
+                            {% set current_assignments = resource.assignments.filter_by(end_date=None).all() %}
+                            {% if current_assignments %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mitarbeiter</th>
+                                            <th>Rolle</th>
+                                            <th>Seit</th>
+                                            <th>Aktionen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for assignment in current_assignments %}
+                                        <tr>
+                                            <td>{{ assignment.employee.first_name }} {{ assignment.employee.last_name }}</td>
+                                            <td>
+                                                {% if assignment.is_primary %}
+                                                <span class="badge badge-primary">Hauptverantwortlich</span>
+                                                {% else %}
+                                                <span class="badge badge-secondary">Mitarbeiter</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ assignment.start_date.strftime('%d.%m.%Y') }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                        onclick="confirmEndAssignment({{ assignment.id }})">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">Keine aktiven Zuordnungen</p>
+                            {% endif %}
+                            
+                            <button type="button" class="btn btn-primary mt-3" data-toggle="modal"
+                                    data-target="#assignModal">
+                                <i class="fas fa-user-plus mr-2"></i>Mitarbeiter zuordnen
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Verlauf -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Verlauf</h5>
+                            {% set past_assignments = resource.assignments.filter(
+                                ResourceAssignment.end_date != None
+                            ).order_by(ResourceAssignment.end_date.desc()).all() %}
+                            
+                            {% if past_assignments %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mitarbeiter</th>
+                                            <th>Rolle</th>
+                                            <th>Zeitraum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for assignment in past_assignments %}
+                                        <tr>
+                                            <td>{{ assignment.employee.first_name }} {{ assignment.employee.last_name }}</td>
+                                            <td>
+                                                {% if assignment.is_primary %}
+                                                <span class="badge badge-primary">Hauptverantwortlich</span>
+                                                {% else %}
+                                                <span class="badge badge-secondary">Mitarbeiter</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ assignment.start_date.strftime('%d.%m.%Y') }} -
+                                                {{ assignment.end_date.strftime('%d.%m.%Y') }}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">Keine vergangenen Zuordnungen</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Zuordnungs-Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mitarbeiter zuordnen</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form method="POST" action="{{ url_for('main.assign_resource', id=resource.id) }}">
+                {{ form.hidden_tag() }}
+                <div class="modal-body">
+                    <div class="form-group">
+                        {{ form.employee_id.label }}
+                        {{ form.employee_id(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            {{ form.is_primary(class="custom-control-input") }}
+                            {{ form.is_primary.label(class="custom-control-label") }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.start_date.label }}
+                        {{ form.start_date(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.end_date.label }}
+                        {{ form.end_date(class="form-control") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Ende-Zuordnung-Modal -->
+<div class="modal fade" id="endAssignmentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Zuordnung beenden</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="endAssignmentForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    Möchten Sie diese Zuordnung wirklich beenden?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Beenden</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmEndAssignment(assignmentId) {
+    const modal = document.getElementById('endAssignmentModal');
+    const form = document.getElementById('endAssignmentForm');
+    form.action = `/resources/assignment/${assignmentId}/end`;
+    $(modal).modal('show');
+}
+</script>
+{% endblock %}

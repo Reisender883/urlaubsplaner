@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Berichte{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Berichte und Analysen</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Jahresanalyse -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Jahresanalyse</h5>
+                                    <p class="card-text">Detaillierte Analyse der Urlaubsverteilung im ausgewählten Jahr.</p>
+                                    <form method="GET" action="{{ url_for('main.yearly_analysis') }}" class="mb-3">
+                                        <div class="form-group">
+                                            <label for="year">Jahr auswählen:</label>
+                                            <select name="year" id="year" class="form-control">
+                                                {% for y in range(current_year-2, current_year+2) %}
+                                                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-chart-line mr-2"></i>Analyse anzeigen
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Abteilungsberichte -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Abteilungsberichte</h5>
+                                    <p class="card-text">Detaillierte Übersicht der Urlaubsverteilung pro Abteilung.</p>
+                                    <form method="GET" action="{{ url_for('main.department_report') }}" class="mb-3">
+                                        <div class="form-group">
+                                            <label for="department">Abteilung auswählen:</label>
+                                            <select name="department" id="department" class="form-control">
+                                                {% for dept in departments %}
+                                                <option value="{{ dept }}">{{ dept }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="year">Jahr:</label>
+                                            <select name="year" id="year" class="form-control">
+                                                {% for y in range(current_year-2, current_year+2) %}
+                                                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-info">
+                                            <i class="fas fa-users mr-2"></i>Bericht anzeigen
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Mitarbeiterberichte -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">Mitarbeiterberichte</h5>
+                                    <p class="card-text">Individuelle Urlaubsübersicht pro Mitarbeiter.</p>
+                                    <form method="GET" action="{{ url_for('main.employee_report') }}" class="mb-3">
+                                        <div class="form-group">
+                                            <label for="employee">Mitarbeiter auswählen:</label>
+                                            <select name="employee_id" id="employee" class="form-control">
+                                                {% for emp in employees %}
+                                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="year">Jahr:</label>
+                                            <select name="year" id="year" class="form-control">
+                                                {% for y in range(current_year-2, current_year+2) %}
+                                                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-user mr-2"></i>Bericht anzeigen
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PDF Export -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">PDF Export</h5>
+                                    <p class="card-text">Exportieren Sie detaillierte Berichte als PDF.</p>
+                                    <form method="GET" action="{{ url_for('main.export_pdf_report') }}" class="mb-3">
+                                        <div class="form-group">
+                                            <label for="report_type">Berichtstyp:</label>
+                                            <select name="report_type" id="report_type" class="form-control">
+                                                <option value="yearly">Jahresanalyse</option>
+                                                <option value="department">Abteilungsbericht</option>
+                                                <option value="employee">Mitarbeiterbericht</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group department-select" style="display: none;">
+                                            <label for="department">Abteilung:</label>
+                                            <select name="department" class="form-control">
+                                                {% for dept in departments %}
+                                                <option value="{{ dept }}">{{ dept }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group employee-select" style="display: none;">
+                                            <label for="employee">Mitarbeiter:</label>
+                                            <select name="employee_id" class="form-control">
+                                                {% for emp in employees %}
+                                                <option value="{{ emp.id }}">{{ emp.first_name }} {{ emp.last_name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="year">Jahr:</label>
+                                            <select name="year" id="year" class="form-control">
+                                                {% for y in range(current_year-2, current_year+2) %}
+                                                <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-file-pdf mr-2"></i>PDF exportieren
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var reportType = document.getElementById('report_type');
+    var departmentSelect = document.querySelector('.department-select');
+    var employeeSelect = document.querySelector('.employee-select');
+    
+    reportType.addEventListener('change', function() {
+        departmentSelect.style.display = 'none';
+        employeeSelect.style.display = 'none';
+        
+        if (this.value === 'department') {
+            departmentSelect.style.display = 'block';
+        } else if (this.value === 'employee') {
+            employeeSelect.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}

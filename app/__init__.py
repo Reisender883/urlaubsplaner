@@ -1,22 +1,35 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_login import LoginManager
-from flask_bootstrap import Bootstrap4
+from flask_bootstrap import Bootstrap
+from flask_mail import Mail
+from flask_cors import CORS
 from config import Config
 
 db = SQLAlchemy()
-login_manager = LoginManager()
-bootstrap = Bootstrap4()
+migrate = Migrate()
+login = LoginManager()
+login.login_view = 'main.login'
+bootstrap = Bootstrap()
+mail = Mail()
+cors = CORS()
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config_class)
 
     db.init_app(app)
-    login_manager.init_app(app)
+    migrate.init_app(app, db)
+    login.init_app(app)
     bootstrap.init_app(app)
+    mail.init_app(app)
+    cors.init_app(app)
 
-    from app.routes import main
-    app.register_blueprint(main)
+    from app.routes import bp as main_bp
+    app.register_blueprint(main_bp)
+
+    with app.app_context():
+        db.create_all()
 
     return app

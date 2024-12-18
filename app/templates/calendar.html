@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Urlaubskalender{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h4 class="mb-0">Urlaubsübersicht</h4>
+    </div>
+    <div class="card-body">
+        <div id="calendar"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'de',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
+        events: {{ events|tojson|safe }},
+        eventClick: function(info) {
+            // Zeige Details zum Urlaubsantrag
+            var event = info.event;
+            var title = event.title;
+            var start = event.start.toLocaleDateString('de-DE');
+            var end = event.end ? event.end.toLocaleDateString('de-DE') : start;
+            
+            alert(title + '\nVon: ' + start + '\nBis: ' + end);
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

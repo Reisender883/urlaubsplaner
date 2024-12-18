@@ -1,0 +1,65 @@
+/* Allgemeine Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Navbar Anpassungen */
+.navbar {
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+/* Card Styles */
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,.05);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+/* Kalender Anpassungen */
+#calendar {
+    height: 800px;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+/* Status-Farben für Urlaubsanträge */
+.status-pending {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.status-approved {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.status-rejected {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Form Styles */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Button Styles */
+.btn-primary {
+    padding: .375rem 1.5rem;
+}
+
+/* Alert Styles */
+.alert {
+    border: none;
+    border-radius: .25rem;
+    margin-bottom: 1rem;
+}

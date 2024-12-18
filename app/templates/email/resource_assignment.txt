@@ -1,0 +1,34 @@
+Hallo {{ assignment.employee.first_name }},
+
+Sie wurden der folgenden Ressource zugeordnet:
+
+{{ assignment.resource.name }}
+{% if assignment.resource.description %}
+{{ assignment.resource.description }}
+{% endif %}
+
+Details:
+- Abteilung: {{ assignment.resource.department }}
+- Priorität: {{ {
+    1: 'Niedrig',
+    2: 'Mittel-Niedrig',
+    3: 'Mittel',
+    4: 'Mittel-Hoch',
+    5: 'Hoch'
+}[assignment.resource.priority] }}
+- Rolle: {% if assignment.is_primary %}Hauptverantwortlich{% else %}Mitarbeiter{% endif %}
+- Startdatum: {{ assignment.start_date.strftime('%d.%m.%Y') }}
+{% if assignment.end_date %}
+- Enddatum: {{ assignment.end_date.strftime('%d.%m.%Y') }}
+{% endif %}
+
+{% if assignment.is_primary %}
+Als Hauptverantwortlicher sind Sie für die Koordination und Überwachung dieser Ressource zuständig. 
+Sie werden automatisch über wichtige Änderungen und potenzielle Konflikte informiert.
+{% endif %}
+
+Weitere Details und Aktionen finden Sie in der Ressourcenverwaltung:
+{{ url_for('main.view_resource', id=assignment.resource.id, _external=True) }}
+
+Mit freundlichen Grüßen
+Ihr Urlaubsplaner-Team

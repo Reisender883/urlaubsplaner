@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Urlaub beantragen{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Urlaubsantrag stellen</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.start_date.label }}
+                                {{ form.start_date(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.end_date.label }}
+                                {{ form.end_date(class="form-control") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.comment.label }}
+                        {{ form.comment(class="form-control") }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Urlaub beantragen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Urlaubsübersicht</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Jahresurlaub:</strong> {{ current_user.annual_leave_days }} Tage</p>
+                <p><strong>Resturlaub Vorjahr:</strong> {{ current_user.carried_over_days }} Tage</p>
+                <p><strong>Verbleibender Urlaub:</strong> {{ remaining_days }} Tage</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr('#start_date', {
+            dateFormat: 'd.m.Y',
+            locale: 'de'
+        });
+        flatpickr('#end_date', {
+            dateFormat: 'd.m.Y',
+            locale: 'de'
+        });
+    });
+</script>
+{% endblock %}

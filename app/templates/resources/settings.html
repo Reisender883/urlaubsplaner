@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Ressourcen-Einstellungen{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Ressourcen-Einstellungen</h4>
+                    <a href="{{ url_for('main.resources') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Zurück
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>Benachrichtigungen</h5>
+                                <div class="form-group mb-3">
+                                    {{ form.notification_threshold.label }}
+                                    {{ form.notification_threshold(class="form-control") }}
+                                    <small class="form-text text-muted">
+                                        {{ form.notification_threshold.description }}
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    {{ form.notification_recipients.label }}
+                                    {{ form.notification_recipients(class="form-control") }}
+                                    <small class="form-text text-muted">
+                                        {{ form.notification_recipients.description }}
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    {{ form.reminder_interval.label }}
+                                    {{ form.reminder_interval(class="form-control") }}
+                                    <small class="form-text text-muted">
+                                        {{ form.reminder_interval.description }}
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5>Automatisierung & Konflikte</h5>
+                                <div class="form-group mb-3">
+                                    {{ form.auto_approve_below_priority.label }}
+                                    {{ form.auto_approve_below_priority(class="form-control") }}
+                                    <small class="form-text text-muted">
+                                        {{ form.auto_approve_below_priority.description }}
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    {{ form.conflict_buffer_days.label }}
+                                    {{ form.conflict_buffer_days(class="form-control") }}
+                                    <small class="form-text text-muted">
+                                        {{ form.conflict_buffer_days.description }}
+                                    </small>
+                                </div>
+                                
+                                <div class="form-group mb-3">
+                                    {{ form.escalation_threshold.label }}
+                                    {{ form.escalation_threshold(class="form-control") }}
+                                    <small class="form-text text-muted">
+                                        {{ form.escalation_threshold.description }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-4">
+                            <div class="custom-control custom-checkbox">
+                                {{ form.weekend_counting(class="custom-control-input") }}
+                                {{ form.weekend_counting.label(class="custom-control-label") }}
+                                <small class="form-text text-muted d-block">
+                                    {{ form.weekend_counting.description }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Hinweise:</h6>
+                            <ul class="mb-0">
+                                <li>Die Benachrichtigungsschwelle bestimmt, wie früh vor einer kritischen Besetzung gewarnt wird.</li>
+                                <li>Der Konfliktpuffer fügt zusätzliche Tage zur Konfliktprüfung hinzu, um Überschneidungen besser zu erkennen.</li>
+                                <li>Die Eskalationsschwelle legt fest, wann bei anhaltender kritischer Besetzung weitere Maßnahmen eingeleitet werden.</li>
+                            </ul>
+                        </div>
+                        
+                        {{ form.submit(class="btn btn-primary") }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

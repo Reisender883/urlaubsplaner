@@ -1,0 +1,28 @@
+Achtung!
+
+Die folgende Ressource ist aktuell kritisch unterbesetzt:
+
+{{ resource.name }}
+{% if resource.description %}
+{{ resource.description }}
+{% endif %}
+
+Details:
+- Abteilung: {{ resource.department }}
+- Priorität: {{ {
+    1: 'Niedrig',
+    2: 'Mittel-Niedrig',
+    3: 'Mittel',
+    4: 'Mittel-Hoch',
+    5: 'Hoch'
+}[resource.priority] }}
+- Mindestbesetzung: {{ resource.min_staff_required }}
+- Aktuelle Besetzung: {{ current_staff }}
+
+Bitte prüfen Sie die Situation und treffen Sie geeignete Maßnahmen zur Sicherstellung der Mindestbesetzung.
+
+Sie können die Details in der Ressourcenverwaltung einsehen:
+{{ url_for('main.view_resource', id=resource.id, _external=True) }}
+
+Mit freundlichen Grüßen
+Ihr Urlaubsplaner-Team

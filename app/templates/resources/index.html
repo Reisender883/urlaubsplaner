@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Ressourcenverwaltung{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Ressourcenverwaltung</h4>
+                    <a href="{{ url_for('main.create_resource') }}" class="btn btn-primary">
+                        <i class="fas fa-plus mr-2"></i>Neue Ressource
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Filter -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="department-filter">Abteilung:</label>
+                                <select id="department-filter" class="form-control">
+                                    <option value="">Alle</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept }}">{{ dept }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="priority-filter">Priorität:</label>
+                                <select id="priority-filter" class="form-control">
+                                    <option value="">Alle</option>
+                                    <option value="1">Niedrig</option>
+                                    <option value="2">Mittel-Niedrig</option>
+                                    <option value="3">Mittel</option>
+                                    <option value="4">Mittel-Hoch</option>
+                                    <option value="5">Hoch</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ressourcen-Liste -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Abteilung</th>
+                                    <th>Priorität</th>
+                                    <th>Mindestbesetzung</th>
+                                    <th>Aktuelle Besetzung</th>
+                                    <th>Status</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for resource in resources %}
+                                <tr data-department="{{ resource.department }}" data-priority="{{ resource.priority }}">
+                                    <td>{{ resource.name }}</td>
+                                    <td>{{ resource.department }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ {
+                                            1: 'secondary',
+                                            2: 'info',
+                                            3: 'primary',
+                                            4: 'warning',
+                                            5: 'danger'
+                                        }[resource.priority] }}">
+                                            {{ {
+                                                1: 'Niedrig',
+                                                2: 'Mittel-Niedrig',
+                                                3: 'Mittel',
+                                                4: 'Mittel-Hoch',
+                                                5: 'Hoch'
+                                            }[resource.priority] }}
+                                        </span>
+                                    </td>
+                                    <td>{{ resource.min_staff_required }}</td>
+                                    <td>
+                                        {% set current_staff = resource.assignments.filter_by(end_date=None).count() %}
+                                        {{ current_staff }}
+                                        {% if current_staff < resource.min_staff_required %}
+                                        <span class="badge badge-danger">Unterbesetzt</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set status = namespace(class='success', text='OK') %}
+                                        {% if current_staff < resource.min_staff_required %}
+                                            {% set status.class = 'danger' %}
+                                            {% set status.text = 'Kritisch' %}
+                                        {% elif current_staff == resource.min_staff_required %}
+                                            {% set status.class = 'warning' %}
+                                            {% set status.text = 'Minimal' %}
+                                        {% endif %}
+                                        <span class="badge badge-{{ status.class }}">{{ status.text }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{{ url_for('main.view_resource', id=resource.id) }}"
+                                               class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('main.edit_resource', id=resource.id) }}"
+                                               class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    onclick="confirmDelete({{ resource.id }})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lösch-Dialog -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ressource löschen</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Sind Sie sicher, dass Sie diese Ressource löschen möchten?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">Löschen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const departmentFilter = document.getElementById('department-filter');
+    const priorityFilter = document.getElementById('priority-filter');
+    const rows = document.querySelectorAll('tbody tr');
+    
+    function filterTable() {
+        const selectedDepartment = departmentFilter.value;
+        const selectedPriority = priorityFilter.value;
+        
+        rows.forEach(row => {
+            const department = row.dataset.department;
+            const priority = row.dataset.priority;
+            const showDepartment = !selectedDepartment || department === selectedDepartment;
+            const showPriority = !selectedPriority || priority === selectedPriority;
+            
+            row.style.display = showDepartment && showPriority ? '' : 'none';
+        });
+    }
+    
+    departmentFilter.addEventListener('change', filterTable);
+    priorityFilter.addEventListener('change', filterTable);
+});
+
+function confirmDelete(resourceId) {
+    const modal = document.getElementById('deleteModal');
+    const form = document.getElementById('deleteForm');
+    form.action = `/resources/${resourceId}/delete`;
+    $(modal).modal('show');
+}
+</script>
+{% endblock %}

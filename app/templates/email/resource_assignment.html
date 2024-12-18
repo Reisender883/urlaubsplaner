@@ -1,0 +1,44 @@
+<p>Hallo {{ assignment.employee.first_name }},</p>
+
+<p>Sie wurden der folgenden Ressource zugeordnet:</p>
+
+<div style="margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+    <h3 style="margin-top: 0;">{{ assignment.resource.name }}</h3>
+    {% if assignment.resource.description %}
+    <p style="margin-bottom: 10px;">{{ assignment.resource.description }}</p>
+    {% endif %}
+    
+    <ul style="list-style: none; padding: 0;">
+        <li><strong>Abteilung:</strong> {{ assignment.resource.department }}</li>
+        <li><strong>Priorität:</strong> 
+            {{ {
+                1: 'Niedrig',
+                2: 'Mittel-Niedrig',
+                3: 'Mittel',
+                4: 'Mittel-Hoch',
+                5: 'Hoch'
+            }[assignment.resource.priority] }}
+        </li>
+        <li><strong>Rolle:</strong> 
+            {% if assignment.is_primary %}
+            <span style="color: #007bff;">Hauptverantwortlich</span>
+            {% else %}
+            Mitarbeiter
+            {% endif %}
+        </li>
+        <li><strong>Startdatum:</strong> {{ assignment.start_date.strftime('%d.%m.%Y') }}</li>
+        {% if assignment.end_date %}
+        <li><strong>Enddatum:</strong> {{ assignment.end_date.strftime('%d.%m.%Y') }}</li>
+        {% endif %}
+    </ul>
+</div>
+
+{% if assignment.is_primary %}
+<p>Als Hauptverantwortlicher sind Sie für die Koordination und Überwachung dieser Ressource zuständig. 
+Sie werden automatisch über wichtige Änderungen und potenzielle Konflikte informiert.</p>
+{% endif %}
+
+<p>Weitere Details und Aktionen finden Sie in der <a href="{{ url_for('main.view_resource', id=assignment.resource.id, _external=True) }}">Ressourcenverwaltung</a>.</p>
+
+<p>Mit freundlichen Grüßen<br>
+Ihr Urlaubsplaner-Team</p>

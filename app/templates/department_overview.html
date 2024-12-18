@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Abteilungsübersicht{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% for department, employees in departments.items() %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ department }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for employee in employees %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ employee.first_name }} {{ employee.last_name }}</h6>
+                                <small class="text-muted">{{ employee.email }}</small>
+                            </div>
+                            <div class="text-right">
+                                <small class="d-block">Jahresurlaub: {{ employee.annual_leave_days }} Tage</small>
+                                <small class="d-block">Resturlaub: {{ employee.carried_over_days }} Tage</small>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                    onclick="showEmployeeCalendar({{ employee.id }})">
+                                Kalender anzeigen
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer">
+                <small class="text-muted">Mitarbeiter gesamt: {{ employees|length }}</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal für Mitarbeiterkalender -->
+<div class="modal fade" id="employeeCalendarModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Urlaubskalender</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="employeeCalendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let calendar = null;
+
+function showEmployeeCalendar(employeeId) {
+    if (calendar) {
+        calendar.destroy();
+    }
+
+    $('#employeeCalendarModal').modal('show');
+    
+    fetch(`/employee_calendar/${employeeId}`)
+        .then(response => response.json())
+        .then(events => {
+            const calendarEl = document.getElementById('employeeCalendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'de',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,dayGridWeek'
+                },
+                events: events,
+                height: 'auto'
+            });
+            calendar.render();
+        });
+}
+
+$('#employeeCalendarModal').on('hidden.bs.modal', function () {
+    if (calendar) {
+        calendar.destroy();
+        calendar = null;
+    }
+});
+</script>
+{% endblock %}

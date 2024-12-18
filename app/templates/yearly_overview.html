@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Jahresübersicht {{ year }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Jahresübersicht {{ year }}</h4>
+                <div>
+                    <a href="{{ url_for('main.export_vacation', year=year) }}" class="btn btn-success">
+                        <i class="fas fa-file-excel"></i> Export
+                    </a>
+                    <div class="btn-group ml-2">
+                        <a href="{{ url_for('main.yearly_overview', year=year-1) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chevron-left"></i> {{ year-1 }}
+                        </a>
+                        <a href="{{ url_for('main.yearly_overview', year=year+1) }}" class="btn btn-outline-primary">
+                            {{ year+1 }} <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Allgemeine Statistiken -->
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="mr-3">
+                        <div class="text-white-75">Mitarbeiter Gesamt</div>
+                        <div class="display-4">{{ stats.total_employees }}</div>
+                    </div>
+                    <i class="fas fa-users fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="mr-3">
+                        <div class="text-white-75">Genehmigte Anträge</div>
+                        <div class="display-4">{{ stats.approved_requests }}</div>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="mr-3">
+                        <div class="text-white-75">Ausstehende Anträge</div>
+                        <div class="display-4">{{ stats.pending_requests }}</div>
+                    </div>
+                    <i class="fas fa-clock fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3 mb-4">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="mr-3">
+                        <div class="text-white-75">Abgelehnte Anträge</div>
+                        <div class="display-4">{{ stats.rejected_requests }}</div>
+                    </div>
+                    <i class="fas fa-times-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Monatliche Verteilung -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Urlaubsverteilung nach Monaten</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Spitzenzeiten -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Spitzenzeiten</h5>
+            </div>
+            <div class="card-body">
+                {% if stats.peak_periods %}
+                <div class="list-group list-group-flush">
+                    {% for month in stats.peak_periods %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ month_names[month] }}</h6>
+                            <span class="badge badge-primary">{{ stats.monthly_stats[month] }} Tage</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Keine Spitzenzeiten identifiziert.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Abteilungsstatistiken -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Abteilungsübersicht</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Abteilung</th>
+                                <th>Mitarbeiter</th>
+                                <th>Gesamturlaub</th>
+                                <th>Genommen</th>
+                                <th>Verbleibend</th>
+                                <th>Auslastung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept, data in stats.department_stats.items() %}
+                            <tr>
+                                <td>{{ dept }}</td>
+                                <td>{{ data.employees }}</td>
+                                <td>{{ data.total_days }}</td>
+                                <td>{{ data.used_days }}</td>
+                                <td>{{ data.total_days - data.used_days }}</td>
+                                <td>
+                                    {% set percentage = (data.used_days / data.total_days * 100)|round|int %}
+                                    <div class="progress">
+                                        <div class="progress-bar {% if percentage > 80 %}bg-danger
+                                                              {% elif percentage > 60 %}bg-warning
+                                                              {% else %}bg-success{% endif %}"
+                                             role="progressbar"
+                                             style="width: {{ percentage }}%"
+                                             aria-valuenow="{{ percentage }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100">{{ percentage }}%</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Monatliche Verteilung Chart
+    var ctx = document.getElementById('monthlyChart').getContext('2d');
+    var monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ month_names|tojson|safe }},
+            datasets: [{
+                label: 'Urlaubstage',
+                data: {{ monthly_data|tojson|safe }},
+                backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                borderColor: 'rgba(0, 123, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
