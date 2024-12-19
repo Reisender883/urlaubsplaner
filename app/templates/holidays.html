@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+<div class="container">
+    <h1>Feiertage verwalten</h1>
+    
+    <!-- Add Holiday Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">Feiertag hinzufügen</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" class="form">
+                <input type="hidden" name="action" value="add">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Datum:</label>
+                    <input type="date" class="form-control" id="date" name="date" required>
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="half_day" name="half_day">
+                    <label class="form-check-label" for="half_day">Halber Tag</label>
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="recurring" name="recurring" checked>
+                    <label class="form-check-label" for="recurring">Jährlich wiederkehrend</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Hinzufügen</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Holidays List -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Feiertage</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Datum</th>
+                            <th>Halber Tag</th>
+                            <th>Wiederkehrend</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for holiday in holidays %}
+                        <tr>
+                            <td>{{ holiday.name }}</td>
+                            <td>{{ holiday.date.strftime('%d.%m.%Y') }}</td>
+                            <td>{% if holiday.half_day %}Ja{% else %}Nein{% endif %}</td>
+                            <td>{% if holiday.recurring %}Ja{% else %}Nein{% endif %}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#editHoliday{{ holiday.id }}">
+                                    <i class="fas fa-edit"></i> Bearbeiten
+                                </button>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="holiday_id" value="{{ holiday.id }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sind Sie sicher?')">
+                                        <i class="fas fa-trash"></i> Löschen
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        
+                        <!-- Edit Modal -->
+                        <div class="modal fade" id="editHoliday{{ holiday.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Feiertag bearbeiten</h5>
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form method="POST">
+                                            <input type="hidden" name="action" value="edit">
+                                            <input type="hidden" name="holiday_id" value="{{ holiday.id }}">
+                                            <div class="form-group">
+                                                <label for="edit_name{{ holiday.id }}">Name:</label>
+                                                <input type="text" class="form-control" id="edit_name{{ holiday.id }}" 
+                                                       name="name" value="{{ holiday.name }}" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="edit_date{{ holiday.id }}">Datum:</label>
+                                                <input type="date" class="form-control" id="edit_date{{ holiday.id }}" 
+                                                       name="date" value="{{ holiday.date.strftime('%Y-%m-%d') }}" required>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <input type="checkbox" class="form-check-input" id="edit_half_day{{ holiday.id }}" 
+                                                       name="half_day" {% if holiday.half_day %}checked{% endif %}>
+                                                <label class="form-check-label" for="edit_half_day{{ holiday.id }}">Halber Tag</label>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <input type="checkbox" class="form-check-input" id="edit_recurring{{ holiday.id }}" 
+                                                       name="recurring" {% if holiday.recurring %}checked{% endif %}>
+                                                <label class="form-check-label" for="edit_recurring{{ holiday.id }}">Jährlich wiederkehrend</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Speichern</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center">Keine Feiertage gefunden</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

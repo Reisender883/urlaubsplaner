@@ -4,167 +4,120 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md-12 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">Admin Dashboard</h4>
-            </div>
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <a href="{{ url_for('main.yearly_overview', year=current_year) }}" class="btn btn-primary btn-lg btn-block">
-                            <i class="fas fa-chart-bar mr-2"></i>Jahresübersicht
-                        </a>
-                    </div>
-                    <div class="col-md-6">
-                        <a href="{{ url_for('main.department_overview') }}" class="btn btn-info btn-lg btn-block">
-                            <i class="fas fa-users mr-2"></i>Abteilungsübersicht
-                        </a>
-                    </div>
-                </div>
-                <div class="card-header">
-                    <h4 class="mb-0">Ausstehende Urlaubsanträge</h4>
-                </div>
-                <div class="card-body">
-                    {% if pending_requests %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Mitarbeiter</th>
-                                    <th>Zeitraum</th>
-                                    <th>Tage</th>
-                                    <th>Vertretung</th>
-                                    <th>Kommentar</th>
-                                    <th>Eingereicht am</th>
-                                    <th>Aktionen</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for request in pending_requests %}
-                                <tr>
-                                    <td>{{ request.employee.first_name }} {{ request.employee.last_name }}</td>
-                                    <td>{{ request.start_date.strftime('%d.%m.%Y') }} - {{ request.end_date.strftime('%d.%m.%Y') }}</td>
-                                    <td>{{ (request.end_date - request.start_date).days + 1 }}</td>
-                                    <td>
-                                        {% if request.substitute %}
-                                            {{ request.substitute.first_name }} {{ request.substitute.last_name }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ request.comment or '-' }}</td>
-                                    <td>{{ request.request_date.strftime('%d.%m.%Y %H:%M') }}</td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ url_for('main.approve_request', request_id=request.id, action='approve') }}" 
-                                               class="btn btn-success btn-sm">Genehmigen</a>
-                                            <a href="{{ url_for('main.approve_request', request_id=request.id, action='reject') }}" 
-                                               class="btn btn-danger btn-sm">Ablehnen</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <p class="text-muted mb-0">Keine ausstehenden Urlaubsanträge.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">Mitarbeiterverwaltung</h4>
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Neuer Mitarbeiter</a>
+            <div class="card-header">
+                <h4 class="mb-0">Urlaubsanträge</h4>
             </div>
             <div class="card-body">
+                {% if vacation_requests %}
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Abteilung</th>
-                                <th>Jahresurlaub</th>
-                                <th>Resturlaub</th>
+                                <th>Mitarbeiter</th>
+                                <th>Von</th>
+                                <th>Bis</th>
+                                <th>Tage</th>
+                                <th>Vertretung</th>
                                 <th>Status</th>
                                 <th>Aktionen</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for employee in employees %}
+                            {% for request in vacation_requests %}
                             <tr>
-                                <td>{{ employee.first_name }} {{ employee.last_name }}</td>
-                                <td>{{ employee.email }}</td>
-                                <td>{{ employee.department }}</td>
-                                <td>{{ employee.annual_leave_days }}</td>
-                                <td>{{ employee.carried_over_days }}</td>
+                                <td>{{ request.employee.username }}</td>
+                                <td>{{ request.start_date.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ request.end_date.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ request.work_days }}</td>
+                                <td>{{ request.substitute.username if request.substitute else '-' }}</td>
                                 <td>
-                                    <span class="badge {% if employee.is_admin %}badge-primary{% else %}badge-secondary{% endif %}">
-                                        {% if employee.is_admin %}Admin{% else %}Mitarbeiter{% endif %}
-                                    </span>
+                                    {% if request.status == 'pending' %}
+                                    <span class="badge badge-warning">Ausstehend</span>
+                                    {% elif request.status == 'approved' %}
+                                    <span class="badge badge-success">Genehmigt</span>
+                                    {% else %}
+                                    <span class="badge badge-danger">Abgelehnt</span>
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" 
-                                            data-target="#editEmployee{{ employee.id }}">
-                                        Bearbeiten
-                                    </button>
+                                    {% if request.status == 'pending' %}
+                                    <div class="btn-group">
+                                        <form action="{{ url_for('main.approve_vacation', id=request.id, action='approve') }}" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        <form action="{{ url_for('main.approve_vacation', id=request.id, action='reject') }}" method="post" class="d-inline ml-1">
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <p>Keine Urlaubsanträge vorhanden.</p>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-{% for employee in employees %}
-<!-- Modal für Mitarbeiterbearbeitung -->
-<div class="modal fade" id="editEmployee{{ employee.id }}" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">{{ employee.first_name }} {{ employee.last_name }} bearbeiten</h5>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span>&times;</span>
-                </button>
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Mitarbeiter</h4>
+                <a href="{{ url_for('main.register') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Neuer Mitarbeiter
+                </a>
             </div>
-            <form action="{{ url_for('main.edit_employee', employee_id=employee.id) }}" method="POST">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Jahresurlaub</label>
-                        <input type="number" name="annual_leave_days" class="form-control" 
-                               value="{{ employee.annual_leave_days }}">
-                    </div>
-                    <div class="form-group">
-                        <label>Resturlaub</label>
-                        <input type="number" step="0.5" name="carried_over_days" class="form-control" 
-                               value="{{ employee.carried_over_days }}">
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="is_admin" class="form-check-input" 
-                               {% if employee.is_admin %}checked{% endif %}>
-                        <label class="form-check-label">Administrator-Rechte</label>
-                    </div>
+            <div class="card-body">
+                {% if users %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Benutzername</th>
+                                <th>Email</th>
+                                <th>Admin</th>
+                                <th>Jahresurlaub</th>
+                                <th>Resturlaub</th>
+                                <th>Verfügbar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    {% if user.is_admin %}
+                                    <span class="badge badge-primary">Ja</span>
+                                    {% else %}
+                                    <span class="badge badge-secondary">Nein</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.annual_leave_days }}</td>
+                                <td>{{ user.carried_over_days }}</td>
+                                <td>{{ user.remaining_days }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
-                    <button type="submit" class="btn btn-primary">Speichern</button>
-                </div>
-            </form>
+                {% else %}
+                <p>Keine Mitarbeiter vorhanden.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
-{% endfor %}
 {% endblock %}

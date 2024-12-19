@@ -1,8 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Urlaubskalender{% endblock %}
+{% block styles %}
+{{ super() }}
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.css' rel='stylesheet' />
+<link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.css' rel='stylesheet' />
+<style>
+    #calendar {
+        margin: 20px 0;
+        height: 700px;
+    }
+    .fc-event {
+        cursor: pointer;
+    }
+    .fc-toolbar-title {
+        text-transform: capitalize;
+    }
+</style>
+{% endblock %}
 
-{% block content %}
+{% block app_content %}
 <div class="card">
     <div class="card-header">
         <h4 class="mb-0">Urlaubsübersicht</h4>
@@ -11,9 +27,36 @@
         <div id="calendar"></div>
     </div>
 </div>
+
+<!-- Event Details Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Urlaubsdetails</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Mitarbeiter:</strong> <span id="eventEmployee"></span></p>
+                <p><strong>Von:</strong> <span id="eventStart"></span></p>
+                <p><strong>Bis:</strong> <span id="eventEnd"></span></p>
+                <p><strong>Status:</strong> <span id="eventStatus"></span></p>
+                <p><strong>Kommentar:</strong> <span id="eventComment"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+{{ super() }}
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.10/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/de.js'></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
@@ -25,15 +68,20 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek'
         },
-        events: {{ events|tojson|safe }},
+        events: '/calendar/events',
         eventClick: function(info) {
-            // Zeige Details zum Urlaubsantrag
             var event = info.event;
-            var title = event.title;
-            var start = event.start.toLocaleDateString('de-DE');
-            var end = event.end ? event.end.toLocaleDateString('de-DE') : start;
+            var props = event.extendedProps;
             
-            alert(title + '\nVon: ' + start + '\nBis: ' + end);
+            // Update modal content
+            document.getElementById('eventEmployee').textContent = props.employee || '';
+            document.getElementById('eventStart').textContent = event.start.toLocaleDateString('de-DE');
+            document.getElementById('eventEnd').textContent = event.end ? event.end.toLocaleDateString('de-DE') : event.start.toLocaleDateString('de-DE');
+            document.getElementById('eventStatus').textContent = props.status || '';
+            document.getElementById('eventComment').textContent = props.comment || '';
+            
+            // Show modal
+            $('#eventModal').modal('show');
         }
     });
     calendar.render();

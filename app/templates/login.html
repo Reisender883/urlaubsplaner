@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Anmelden{% endblock %}
-
-{% block content %}
+{% block app_content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0">Anmelden</h4>
+                <h4 class="mb-0">Login</h4>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('auth.login') }}">
@@ -15,10 +13,16 @@
                     <div class="form-group">
                         {{ form.username.label }}
                         {{ form.username(class="form-control") }}
+                        {% for error in form.username.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
                     </div>
                     <div class="form-group">
                         {{ form.password.label }}
                         {{ form.password(class="form-control") }}
+                        {% for error in form.password.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
                     </div>
                     <div class="form-check mb-3">
                         {{ form.remember_me(class="form-check-input") }}

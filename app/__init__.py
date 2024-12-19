@@ -14,7 +14,6 @@ login.login_view = 'main.login'
 login.login_message = 'Please log in to access this page.'
 bootstrap = Bootstrap()
 mail = Mail()
-cors = CORS()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -29,7 +28,6 @@ def create_app(config_class=Config):
     login.init_app(app)
     bootstrap.init_app(app)
     mail.init_app(app)
-    cors.init_app(app)
 
     from app.routes import bp as main_bp
     app.register_blueprint(main_bp)

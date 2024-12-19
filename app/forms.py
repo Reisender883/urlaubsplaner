@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, SelectMultipleField, IntegerField, TimeField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, SelectMultipleField, IntegerField, TimeField, DateField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, NumberRange
 from app.models import User
 
@@ -49,3 +49,14 @@ class ResourceAssignmentForm(FlaskForm):
     capacity_percentage = IntegerField('Capacity Percentage', validators=[DataRequired(), NumberRange(min=1, max=100)])
     hours_per_week = IntegerField('Hours per Week', validators=[DataRequired(), NumberRange(min=1, max=168)])
     submit = SubmitField('Add Assignment')
+
+class VacationRequestForm(FlaskForm):
+    start_date = DateField('Startdatum', validators=[DataRequired()], format='%Y-%m-%d')
+    end_date = DateField('Enddatum', validators=[DataRequired()], format='%Y-%m-%d')
+    substitute = SelectField('Vertretung', coerce=int, validators=[DataRequired()])
+    comment = TextAreaField('Kommentar')
+    submit = SubmitField('Beantragen')
+
+    def validate_end_date(self, field):
+        if field.data < self.start_date.data:
+            raise ValidationError('Das Enddatum muss nach dem Startdatum liegen.')

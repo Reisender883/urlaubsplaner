@@ -1,36 +1,47 @@
 {% extends "base.html" %}
 
-{% block title %}Urlaub beantragen{% endblock %}
-
-{% block content %}
+{% block app_content %}
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h4 class="mb-0">Urlaubsantrag stellen</h4>
+                <h4 class="mb-0">Urlaub beantragen</h4>
             </div>
             <div class="card-body">
-                <form method="POST">
+                <form method="POST" action="{{ url_for('main.request_vacation') }}">
                     {{ form.hidden_tag() }}
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {{ form.start_date.label }}
-                                {{ form.start_date(class="form-control") }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {{ form.end_date.label }}
-                                {{ form.end_date(class="form-control") }}
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        {{ form.start_date.label }}
+                        {{ form.start_date(class="form-control", type="date") }}
+                        {% for error in form.start_date.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.end_date.label }}
+                        {{ form.end_date(class="form-control", type="date") }}
+                        {% for error in form.end_date.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.substitute.label }}
+                        {{ form.substitute(class="form-control") }}
+                        {% for error in form.substitute.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
                     </div>
                     <div class="form-group">
                         {{ form.comment.label }}
-                        {{ form.comment(class="form-control") }}
+                        {{ form.comment(class="form-control", rows=3) }}
+                        {% for error in form.comment.errors %}
+                        <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
                     </div>
-                    <button type="submit" class="btn btn-primary">Urlaub beantragen</button>
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Abbrechen
+                    </a>
                 </form>
             </div>
         </div>
@@ -43,24 +54,9 @@
             <div class="card-body">
                 <p><strong>Jahresurlaub:</strong> {{ current_user.annual_leave_days }} Tage</p>
                 <p><strong>Resturlaub Vorjahr:</strong> {{ current_user.carried_over_days }} Tage</p>
-                <p><strong>Verbleibender Urlaub:</strong> {{ remaining_days }} Tage</p>
+                <p><strong>Verbleibender Urlaub:</strong> {{ "%.1f"|format(current_user.remaining_days) }} Tage</p>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        flatpickr('#start_date', {
-            dateFormat: 'd.m.Y',
-            locale: 'de'
-        });
-        flatpickr('#end_date', {
-            dateFormat: 'd.m.Y',
-            locale: 'de'
-        });
-    });
-</script>
 {% endblock %}
